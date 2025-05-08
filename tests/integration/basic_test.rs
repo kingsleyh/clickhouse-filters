@@ -103,7 +103,7 @@ async fn test_all_column_types() -> Result<()> {
         let result = client.query(&sql).fetch_all::<QueryResult>().await?;
 
         // Verify result
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
         for item in &result {
             assert!(item.age > 20);
             assert!(item.score > 80.0);

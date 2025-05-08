@@ -941,15 +941,14 @@ impl ClickHouseFilters {
         };
 
         // Create pagination component
-        let pagination = match pagination {
-            Some(opts) => Some(pagination::Paginate::new(
+        let pagination = pagination.map(|opts| {
+            pagination::Paginate::new(
                 opts.current_page,
                 opts.per_page,
                 opts.per_page_limit,
                 opts.total_records,
-            )),
-            None => None,
-        };
+            )
+        });
 
         // Create filtering component
         let filters = match filtering_options {
@@ -985,7 +984,7 @@ impl ClickHouseFilters {
 
         // Add LIMIT and OFFSET
         if let Some(pagination) = &self.pagination {
-            sql.push_str(" ");
+            sql.push(' ');
             sql.push_str(&pagination.sql);
         }
 
@@ -1026,7 +1025,7 @@ impl ClickHouseFilters {
 
         // Add LIMIT and OFFSET
         if let Some(pagination) = &self.pagination {
-            sql.push_str(" ");
+            sql.push(' ');
             sql.push_str(&pagination.sql);
         }
 

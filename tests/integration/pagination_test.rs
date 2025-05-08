@@ -1,9 +1,8 @@
 //! Integration tests for pagination functionality
 
 use crate::integration::run_with_clickhouse;
-use clickhouse_filters::{ClickHouseFilters, ColumnDef, PaginationOptions};
+use clickhouse_filters::{ClickHouseFilters, PaginationOptions};
 use eyre::Result;
-use serde::Deserialize;
 use std::collections::HashMap;
 
 #[tokio::test]
@@ -105,7 +104,7 @@ async fn test_last_page_pagination() -> Result<()> {
         let result = client.query(&sql).fetch_all::<String>().await?;
 
         // Verify result
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
         assert!(result.len() <= per_page as usize);
 
         Ok(())

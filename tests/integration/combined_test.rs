@@ -85,7 +85,7 @@ async fn test_filter_sort_paginate() -> Result<()> {
         // 3. Should have at most 2 results (pagination)
 
         assert!(result.len() <= 2);
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
 
         // Check active status
         for item in &result {
@@ -124,7 +124,7 @@ async fn test_filter_sort_paginate() -> Result<()> {
                 .await?;
 
             // Ensure second page has items
-            assert!(second_page_result.len() > 0);
+            assert!(!second_page_result.is_empty());
 
             // Check active status on second page
             for item in &second_page_result {

@@ -44,7 +44,7 @@ async fn test_basic_json_filter() -> Result<()> {
         let result = client.query(&sql).fetch_all::<QueryResult>().await?;
 
         // Verify result
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
         for item in &result {
             assert!(item.age > 25);
         }
@@ -100,7 +100,7 @@ async fn test_multiple_json_filters() -> Result<()> {
         let result = client.query(&sql).fetch_all::<QueryResult>().await?;
 
         // Verify result
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
         for item in &result {
             assert!(item.age > 25);
             assert_eq!(item.active, 1);
@@ -157,7 +157,7 @@ async fn test_json_filters_with_or() -> Result<()> {
         let result = client.query(&sql).fetch_all::<QueryResult>().await?;
 
         // Verify result
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
         for item in &result {
             assert!(item.age < 25 || item.active == 0);
         }
@@ -203,7 +203,7 @@ async fn test_json_filters_with_array() -> Result<()> {
         let result = client.query(&sql).fetch_all::<QueryResult>().await?;
 
         // Verify result
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
         for item in &result {
             assert!(item.tags.contains(&"developer".to_string()));
         }

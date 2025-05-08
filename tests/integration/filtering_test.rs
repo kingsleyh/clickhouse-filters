@@ -1,7 +1,6 @@
 //! Integration tests for filtering functionality
 
 use crate::integration::run_with_clickhouse;
-use chrono;
 use clickhouse_filters::{
     filtering::{FilterCondition, FilterExpression, FilterOperator},
     ClickHouseFilters, ColumnDef, FilteringOptions,
@@ -87,7 +86,7 @@ async fn test_numeric_range_filtering() -> Result<()> {
         let result = client.query(&sql).fetch_all::<QueryResult>().await?;
 
         // Verify result
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
         for item in &result {
             assert!(item.age > 25);
         }
@@ -127,7 +126,7 @@ async fn test_array_filtering() -> Result<()> {
         let result = client.query(&sql).fetch_all::<QueryResult>().await?;
 
         // Verify result
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
         for item in &result {
             assert!(item.tags.contains(&String::from("developer")));
         }
@@ -184,7 +183,7 @@ async fn test_complex_condition_filtering() -> Result<()> {
         let result = client.query(&sql).fetch_all::<QueryResult>().await?;
 
         // Verify result
-        assert!(result.len() > 0);
+        assert!(!result.is_empty());
         for item in &result {
             assert!((item.age > 25 && item.active == 1) || item.score > 90.0);
         }
