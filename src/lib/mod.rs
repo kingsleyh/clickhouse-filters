@@ -842,6 +842,12 @@ impl FilteringOptions {
         Ok(builder)
     }
     
+    /// Generate SQL for this filtering option
+    pub fn to_sql(&self) -> Result<String> {
+        let builder = self.to_filter_builder()?;
+        builder.build()
+    }
+    
     /// Create FilteringOptions from expressions with validation
     pub fn try_from_expressions(
         expressions: Vec<Result<FilterExpression, eyre::Error>>,
