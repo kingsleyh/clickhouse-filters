@@ -9,13 +9,13 @@ use std::time::Duration;
 use testcontainers_modules::{clickhouse::ClickHouse, testcontainers::runners::AsyncRunner};
 
 // Import test modules
-pub mod test_schema;
-pub mod filtering_test;
-pub mod sorting_test;
-pub mod pagination_test;
-pub mod combined_test;
 pub mod basic_test;
+pub mod combined_test;
+pub mod filtering_test;
 pub mod json_test;
+pub mod pagination_test;
+pub mod sorting_test;
+pub mod test_schema;
 
 /// Run tests with a ClickHouse container
 pub async fn run_with_clickhouse<F, Fut>(test: F) -> Result<()>

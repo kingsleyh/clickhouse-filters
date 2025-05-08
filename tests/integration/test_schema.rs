@@ -6,7 +6,7 @@ use eyre::Result;
 /// Set up schema and tables for testing
 pub async fn setup_test_schema(client: &Client) -> Result<()> {
     println!("Creating test database if it doesn't exist...");
-    
+
     // Create database
     client
         .query("CREATE DATABASE IF NOT EXISTS test_filters")
@@ -54,7 +54,7 @@ pub async fn setup_test_schema(client: &Client) -> Result<()> {
         )
         .execute()
         .await?;
-    
+
     println!("Sample data inserted successfully");
 
     // Create orders table (for joining tests)
@@ -93,7 +93,7 @@ pub async fn setup_test_schema(client: &Client) -> Result<()> {
         )
         .execute()
         .await?;
-    
+
     println!("Sample order data inserted successfully");
 
     Ok(())
@@ -105,6 +105,6 @@ pub async fn clear_test_schema(client: &Client) -> Result<()> {
         .query("DROP DATABASE IF EXISTS test_filters")
         .execute()
         .await?;
-    
+
     Ok(())
 }

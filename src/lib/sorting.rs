@@ -70,7 +70,7 @@ impl Sorting {
         } else {
             "".to_string()
         };
-        
+
         // Build the SQL ORDER BY clause
         let mut first = true;
         for column in columns.iter() {
@@ -90,7 +90,7 @@ impl Sorting {
                 }
             }
         }
-        
+
         Sorting { columns, sql }
     }
 }

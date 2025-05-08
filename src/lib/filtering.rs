@@ -67,9 +67,9 @@ pub enum FilterOperator {
     EndsWith,
     // ClickHouse-specific array operators
     ArrayContains,
-    ArrayHas,  // Similar to PostgreSQL's @> but with different syntax in ClickHouse
-    ArrayAll,  // Check if all elements match a condition
-    ArrayAny,  // Check if any elements match a condition
+    ArrayHas, // Similar to PostgreSQL's @> but with different syntax in ClickHouse
+    ArrayAll, // Check if all elements match a condition
+    ArrayAny, // Check if any elements match a condition
     // ClickHouse-specific date operators
     DateEqual,
     DateRange,
@@ -91,18 +91,18 @@ impl FilterOperator {
             FilterOperator::NotIn => "NOT IN",
             FilterOperator::IsNull => "IS NULL",
             FilterOperator::IsNotNull => "IS NOT NULL",
-            FilterOperator::StartsWith => "LIKE",  // Will need special handling
-            FilterOperator::EndsWith => "LIKE",    // Will need special handling
-            FilterOperator::ArrayContains => "hasAll",  // ClickHouse function
-            FilterOperator::ArrayHas => "has",     // ClickHouse function
-            FilterOperator::ArrayAll => "ALL",     // ClickHouse ALL
-            FilterOperator::ArrayAny => "ANY",     // ClickHouse ANY
-            FilterOperator::DateEqual => "=",      // Will need special handling
+            FilterOperator::StartsWith => "LIKE", // Will need special handling
+            FilterOperator::EndsWith => "LIKE",   // Will need special handling
+            FilterOperator::ArrayContains => "hasAll", // ClickHouse function
+            FilterOperator::ArrayHas => "has",    // ClickHouse function
+            FilterOperator::ArrayAll => "ALL",    // ClickHouse ALL
+            FilterOperator::ArrayAny => "ANY",    // ClickHouse ANY
+            FilterOperator::DateEqual => "=",     // Will need special handling
             FilterOperator::DateRange => "BETWEEN",
-            FilterOperator::RelativeDate => ">",   // Will need special handling
+            FilterOperator::RelativeDate => ">", // Will need special handling
         }
     }
-    
+
     pub fn format_value(&self, value: &str) -> String {
         match self {
             FilterOperator::StartsWith => format!("{}%", value),
@@ -232,7 +232,7 @@ pub enum FilterCondition {
         operator: FilterOperator,
         value: Option<String>,
     },
-    
+
     // Numeric types
     UInt8Value {
         column: String,
@@ -284,7 +284,7 @@ pub enum FilterCondition {
         operator: FilterOperator,
         value: Option<f64>,
     },
-    
+
     // Date/Time Types
     DateValue {
         column: String,
@@ -301,27 +301,27 @@ pub enum FilterCondition {
         operator: FilterOperator,
         value: Option<String>,
     },
-    
+
     // Date Range
     DateRange {
         column: String,
         range_type: DateRangeType,
     },
-    
+
     // Boolean Type
     BooleanValue {
         column: String,
         operator: FilterOperator,
         value: Option<bool>,
     },
-    
+
     // UUID Type
     UUIDValue {
         column: String,
         operator: FilterOperator,
         value: Option<String>,
     },
-    
+
     // Multi-value conditions for IN/NOT IN
     InValues {
         column: String,
@@ -329,7 +329,7 @@ pub enum FilterCondition {
         values: Vec<String>,
         column_type: Option<ColumnTypeInfo>,
     },
-    
+
     // Array Types
     ArrayContains {
         column: String,
@@ -341,7 +341,7 @@ pub enum FilterCondition {
         operator: FilterOperator,
         value: String,
     },
-    
+
     // JSON Type
     JSONValue {
         column: String,
@@ -391,7 +391,8 @@ impl FilterCondition {
                 column,
                 operator,
                 value,
-            } | FilterCondition::FixedStringValue {
+            }
+            | FilterCondition::FixedStringValue {
                 column,
                 operator,
                 value,
@@ -445,11 +446,7 @@ impl FilterCondition {
                                 Self::escape_string(v)
                             ))
                         } else {
-                            Ok(format!(
-                                "{} LIKE '{}%'",
-                                column,
-                                Self::escape_string(v)
-                            ))
+                            Ok(format!("{} LIKE '{}%'", column, Self::escape_string(v)))
                         }
                     }
                     None => Ok(format!("{} LIKE '%'", column)),
@@ -463,27 +460,20 @@ impl FilterCondition {
                                 Self::escape_string(v)
                             ))
                         } else {
-                            Ok(format!(
-                                "{} LIKE '%{}'",
-                                column,
-                                Self::escape_string(v)
-                            ))
+                            Ok(format!("{} LIKE '%{}'", column, Self::escape_string(v)))
                         }
                     }
                     None => Ok(format!("{} LIKE '%'", column)),
                 },
                 FilterOperator::In => match value {
                     Some(v) => {
-                        let values = v
-                            .split(',')
-                            .map(|item| item.trim())
-                            .collect::<Vec<_>>();
+                        let values = v.split(',').map(|item| item.trim()).collect::<Vec<_>>();
                         let formatted_values = values
                             .iter()
                             .map(|val| format!("'{}'", Self::escape_string(val)))
                             .collect::<Vec<_>>()
                             .join(", ");
-                        
+
                         if case_insensitive {
                             Ok(format!(
                                 "lower({}) IN ({})",
@@ -502,16 +492,13 @@ impl FilterCondition {
                 },
                 FilterOperator::NotIn => match value {
                     Some(v) => {
-                        let values = v
-                            .split(',')
-                            .map(|item| item.trim())
-                            .collect::<Vec<_>>();
+                        let values = v.split(',').map(|item| item.trim()).collect::<Vec<_>>();
                         let formatted_values = values
                             .iter()
                             .map(|val| format!("'{}'", Self::escape_string(val)))
                             .collect::<Vec<_>>()
                             .join(", ");
-                        
+
                         if case_insensitive {
                             Ok(format!(
                                 "lower({}) NOT IN ({})",
@@ -532,37 +519,44 @@ impl FilterCondition {
                 FilterOperator::IsNotNull => Ok(format!("{} IS NOT NULL", column)),
                 _ => Err(eyre::eyre!("Unsupported operator for string type")),
             },
-            
+
             // Numeric integer types (similar implementation for all integer types)
             FilterCondition::UInt8Value {
                 column,
                 operator,
                 value: _,
-            } | FilterCondition::UInt16Value {
+            }
+            | FilterCondition::UInt16Value {
                 column,
                 operator,
                 value: _,
-            } | FilterCondition::UInt32Value {
+            }
+            | FilterCondition::UInt32Value {
                 column,
                 operator,
                 value: _,
-            } | FilterCondition::UInt64Value {
+            }
+            | FilterCondition::UInt64Value {
                 column,
                 operator,
                 value: _,
-            } | FilterCondition::Int8Value {
+            }
+            | FilterCondition::Int8Value {
                 column,
                 operator,
                 value: _,
-            } | FilterCondition::Int16Value {
+            }
+            | FilterCondition::Int16Value {
                 column,
                 operator,
                 value: _,
-            } | FilterCondition::Int32Value {
+            }
+            | FilterCondition::Int32Value {
                 column,
                 operator,
                 value: _,
-            } | FilterCondition::Int64Value {
+            }
+            | FilterCondition::Int64Value {
                 column,
                 operator,
                 value: _,
@@ -585,7 +579,7 @@ impl FilterCondition {
                         FilterCondition::Int64Value { value, .. } => value.map(|v| v.to_string()),
                         _ => None,
                     };
-                    
+
                     match value_str {
                         Some(v) => Ok(format!("{} {} {}", column, operator.as_sql(), v)),
                         None => Ok(format!("{} {}", column, operator.as_sql())),
@@ -604,7 +598,7 @@ impl FilterCondition {
                         FilterCondition::Int64Value { value, .. } => value.map(|v| v.to_string()),
                         _ => None,
                     };
-                    
+
                     match value_str {
                         Some(v) => {
                             let values = v
@@ -630,7 +624,7 @@ impl FilterCondition {
                         FilterCondition::Int64Value { value, .. } => value.map(|v| v.to_string()),
                         _ => None,
                     };
-                    
+
                     match value_str {
                         Some(v) => {
                             let values = v
@@ -647,13 +641,14 @@ impl FilterCondition {
                 FilterOperator::IsNotNull => Ok(format!("{} IS NOT NULL", column)),
                 _ => Err(eyre::eyre!("Unsupported operator for integer type")),
             },
-            
+
             // Floating point types
             FilterCondition::Float32Value {
                 column,
                 operator,
                 value: _,
-            } | FilterCondition::Float64Value {
+            }
+            | FilterCondition::Float64Value {
                 column,
                 operator,
                 value: _,
@@ -670,7 +665,7 @@ impl FilterCondition {
                         FilterCondition::Float64Value { value, .. } => value.map(|v| v.to_string()),
                         _ => None,
                     };
-                    
+
                     match value_str {
                         Some(v) => Ok(format!("{} {} {}", column, operator.as_sql(), v)),
                         None => Ok(format!("{} {}", column, operator.as_sql())),
@@ -680,17 +675,19 @@ impl FilterCondition {
                 FilterOperator::IsNotNull => Ok(format!("{} IS NOT NULL", column)),
                 _ => Err(eyre::eyre!("Unsupported operator for float type")),
             },
-            
+
             // Date/Time Types
             FilterCondition::DateValue {
                 column,
                 operator,
                 value: _,
-            } | FilterCondition::DateTimeValue {
+            }
+            | FilterCondition::DateTimeValue {
                 column,
                 operator,
                 value: _,
-            } | FilterCondition::DateTime64Value {
+            }
+            | FilterCondition::DateTime64Value {
                 column,
                 operator,
                 value: _,
@@ -708,7 +705,7 @@ impl FilterCondition {
                         FilterCondition::DateTime64Value { value, .. } => value.clone(),
                         _ => None,
                     };
-                    
+
                     match value_str {
                         Some(v) => Ok(format!("{} {} '{}'", column, operator.as_sql(), v)),
                         None => Ok(format!("{} {}", column, operator.as_sql())),
@@ -718,15 +715,10 @@ impl FilterCondition {
                 FilterOperator::IsNotNull => Ok(format!("{} IS NOT NULL", column)),
                 _ => Err(eyre::eyre!("Unsupported operator for date/time type")),
             },
-            
+
             // Date Range specific handling
-            FilterCondition::DateRange {
-                column,
-                range_type,
-            } => match range_type {
-                DateRangeType::Exact(timestamp) => {
-                    Ok(format!("{} = '{}'", column, timestamp))
-                }
+            FilterCondition::DateRange { column, range_type } => match range_type {
+                DateRangeType::Exact(timestamp) => Ok(format!("{} = '{}'", column, timestamp)),
                 DateRangeType::DateOnly(date) => {
                     // In ClickHouse we can use toDate function
                     Ok(format!("toDate({}) = toDate('{}')", column, date))
@@ -739,7 +731,7 @@ impl FilterCondition {
                     Ok(format!("{} > {}", column, expr))
                 }
             },
-            
+
             // Boolean Type
             FilterCondition::BooleanValue {
                 column,
@@ -758,7 +750,7 @@ impl FilterCondition {
                 FilterOperator::IsNotNull => Ok(format!("{} IS NOT NULL", column)),
                 _ => Err(eyre::eyre!("Unsupported operator for boolean type")),
             },
-            
+
             // UUID Type
             FilterCondition::UUIDValue {
                 column,
@@ -795,7 +787,7 @@ impl FilterCondition {
                 FilterOperator::IsNotNull => Ok(format!("{} IS NOT NULL", column)),
                 _ => Err(eyre::eyre!("Unsupported operator for UUID type")),
             },
-            
+
             // Array Types
             FilterCondition::ArrayContains {
                 column,
@@ -809,7 +801,7 @@ impl FilterCondition {
                     .collect::<Vec<_>>()
                     .join(", ");
                 Ok(format!("hasAll({}, array[{}])", column, values))
-            },
+            }
             FilterCondition::ArrayHas {
                 column,
                 operator: _,
@@ -817,8 +809,8 @@ impl FilterCondition {
             } => {
                 // In ClickHouse, we use `has` function for checking if array contains a value
                 Ok(format!("has({}, '{}')", column, value.replace('\'', "''")))
-            },
-            
+            }
+
             // JSON Type
             FilterCondition::JSONValue {
                 column,
@@ -831,7 +823,7 @@ impl FilterCondition {
                     Some(p) => format!("JSONExtractString({}, '{}')", column, p),
                     None => column.clone(),
                 };
-                
+
                 match operator {
                     FilterOperator::Equal | FilterOperator::NotEqual => match value {
                         Some(v) => {
@@ -862,8 +854,8 @@ impl FilterCondition {
                     FilterOperator::IsNotNull => Ok(format!("{} IS NOT NULL", json_column)),
                     _ => Err(eyre::eyre!("Unsupported operator for JSON type")),
                 }
-            },
-            
+            }
+
             // For InValues (complex type handling for IN/NOT IN)
             FilterCondition::InValues {
                 column,
@@ -875,7 +867,7 @@ impl FilterCondition {
                     Some(ColumnTypeInfo::String) => true,
                     _ => false,
                 };
-                
+
                 let formatted_values = if is_text {
                     values
                         .iter()
@@ -902,13 +894,13 @@ impl FilterCondition {
                         .collect::<Vec<_>>()
                         .join(", ")
                 };
-                
+
                 let column_name = if case_insensitive && is_text {
                     format!("lower({})", column)
                 } else {
                     column.to_string()
                 };
-                
+
                 match operator {
                     FilterOperator::In => Ok(format!("{} IN ({})", column_name, formatted_values)),
                     FilterOperator::NotIn => {
@@ -916,12 +908,12 @@ impl FilterCondition {
                     }
                     _ => Err(eyre::eyre!("Invalid operator for InValues condition")),
                 }
-            },
+            }
         }
     }
-    
+
     // Convenience constructors for different types
-    
+
     // String type
     pub fn string(column: &str, operator: FilterOperator, value: Option<&str>) -> Self {
         FilterCondition::StringValue {
@@ -930,7 +922,7 @@ impl FilterCondition {
             value: value.map(ToString::to_string),
         }
     }
-    
+
     // Fixed string type
     pub fn fixed_string(column: &str, operator: FilterOperator, value: Option<&str>) -> Self {
         FilterCondition::FixedStringValue {
@@ -939,7 +931,7 @@ impl FilterCondition {
             value: value.map(ToString::to_string),
         }
     }
-    
+
     // UInt8 type
     pub fn uint8(column: &str, operator: FilterOperator, value: Option<u8>) -> Self {
         FilterCondition::UInt8Value {
@@ -948,7 +940,7 @@ impl FilterCondition {
             value,
         }
     }
-    
+
     // UInt32 type
     pub fn uint32(column: &str, operator: FilterOperator, value: Option<u32>) -> Self {
         FilterCondition::UInt32Value {
@@ -957,7 +949,7 @@ impl FilterCondition {
             value,
         }
     }
-    
+
     // Int32 type
     pub fn int32(column: &str, operator: FilterOperator, value: Option<i32>) -> Self {
         FilterCondition::Int32Value {
@@ -966,7 +958,7 @@ impl FilterCondition {
             value,
         }
     }
-    
+
     // Int64 type
     pub fn int64(column: &str, operator: FilterOperator, value: Option<i64>) -> Self {
         FilterCondition::Int64Value {
@@ -975,7 +967,7 @@ impl FilterCondition {
             value,
         }
     }
-    
+
     // Float64 type
     pub fn float64(column: &str, operator: FilterOperator, value: Option<f64>) -> Self {
         FilterCondition::Float64Value {
@@ -984,7 +976,7 @@ impl FilterCondition {
             value,
         }
     }
-    
+
     // Date type
     pub fn date(column: &str, operator: FilterOperator, value: Option<&str>) -> Self {
         FilterCondition::DateValue {
@@ -993,7 +985,7 @@ impl FilterCondition {
             value: value.map(ToString::to_string),
         }
     }
-    
+
     // DateTime type
     pub fn date_time(column: &str, operator: FilterOperator, value: Option<&str>) -> Self {
         FilterCondition::DateTimeValue {
@@ -1002,7 +994,7 @@ impl FilterCondition {
             value: value.map(ToString::to_string),
         }
     }
-    
+
     // Boolean type
     pub fn boolean(column: &str, operator: FilterOperator, value: Option<bool>) -> Self {
         FilterCondition::BooleanValue {
@@ -1011,7 +1003,7 @@ impl FilterCondition {
             value,
         }
     }
-    
+
     // UUID type
     pub fn uuid(column: &str, operator: FilterOperator, value: Option<&str>) -> Self {
         FilterCondition::UUIDValue {
@@ -1020,9 +1012,14 @@ impl FilterCondition {
             value: value.map(ToString::to_string),
         }
     }
-    
+
     // JSON type
-    pub fn json(column: &str, operator: FilterOperator, value: Option<&str>, path: Option<&str>) -> Self {
+    pub fn json(
+        column: &str,
+        operator: FilterOperator,
+        value: Option<&str>,
+        path: Option<&str>,
+    ) -> Self {
         FilterCondition::JSONValue {
             column: column.to_string(),
             operator,
@@ -1030,7 +1027,7 @@ impl FilterCondition {
             path: path.map(ToString::to_string),
         }
     }
-    
+
     // Array contains (checks if array contains ALL specified values)
     pub fn array_contains(column: &str, values: &str) -> Self {
         FilterCondition::ArrayContains {
@@ -1039,7 +1036,7 @@ impl FilterCondition {
             value: values.to_string(),
         }
     }
-    
+
     // Array has (checks if array contains ANY of the specified values)
     pub fn array_has(column: &str, value: &str) -> Self {
         FilterCondition::ArrayHas {
@@ -1048,23 +1045,23 @@ impl FilterCondition {
             value: value.to_string(),
         }
     }
-    
+
     // Date range helpers
-    
+
     pub fn date_exact(column: &str, timestamp: &str) -> Self {
         FilterCondition::DateRange {
             column: column.to_string(),
             range_type: DateRangeType::Exact(timestamp.to_string()),
         }
     }
-    
+
     pub fn date_only(column: &str, date: &str) -> Self {
         FilterCondition::DateRange {
             column: column.to_string(),
             range_type: DateRangeType::DateOnly(date.to_string()),
         }
     }
-    
+
     pub fn date_range(column: &str, start: &str, end: &str) -> Self {
         FilterCondition::DateRange {
             column: column.to_string(),
@@ -1074,16 +1071,21 @@ impl FilterCondition {
             },
         }
     }
-    
+
     pub fn relative_date(column: &str, expr: &str) -> Self {
         FilterCondition::DateRange {
             column: column.to_string(),
             range_type: DateRangeType::Relative(expr.to_string()),
         }
     }
-    
+
     // IN values with type information
-    pub fn in_values(column: &str, operator: FilterOperator, values: Vec<String>, column_type: Option<ColumnTypeInfo>) -> Self {
+    pub fn in_values(
+        column: &str,
+        operator: FilterOperator,
+        values: Vec<String>,
+        column_type: Option<ColumnTypeInfo>,
+    ) -> Self {
         FilterCondition::InValues {
             column: column.to_string(),
             operator,
@@ -1091,7 +1093,7 @@ impl FilterCondition {
             column_type,
         }
     }
-    
+
     // More constructors will be added for other types
 }
 
@@ -1161,7 +1163,7 @@ impl FilterBuilder {
         }
         self
     }
-    
+
     /// Create a FilterBuilder from JSON filters
     pub fn from_json_filters(
         filters: &[JsonFilter],
@@ -1169,28 +1171,28 @@ impl FilterBuilder {
         column_defs: &std::collections::HashMap<&'static str, crate::ColumnDef>,
     ) -> Result<Self> {
         use LogicalOperator::{And, Or};
-        
+
         if filters.is_empty() {
             return Ok(Self::new().case_insensitive(case_insensitive));
         }
-        
+
         let mut builder = Self::new().case_insensitive(case_insensitive);
         let mut current_group: Option<(LogicalOperator, Vec<FilterExpression>)> = None;
         let mut last_connector: Option<LogicalOperator> = None;
-        
+
         for filter in filters {
             // Get column definition
             let column_def = column_defs
                 .get(filter.n.as_str())
                 .ok_or_else(|| eyre::eyre!("Column not found: {}", filter.n))?;
-            
+
             // Parse operator
             let operator = &filter.f;
-            
+
             // Create the condition from column definition
             let condition = column_def.to_filter_condition(operator, &filter.v)?;
             let expression = FilterExpression::Condition(condition);
-            
+
             // Handle connector logic
             match &filter.c {
                 Some(connector) => {
@@ -1199,7 +1201,7 @@ impl FilterBuilder {
                         "OR" => Or,
                         _ => And, // Default to AND
                     };
-                    
+
                     match &mut current_group {
                         None => {
                             // Start new group
@@ -1216,10 +1218,10 @@ impl FilterBuilder {
                                     operator: *current_op,
                                     expressions: expressions.clone(),
                                 };
-                                
+
                                 // Add the group to the builder
                                 builder = builder.add_expression(group);
-                                
+
                                 // Start new group
                                 current_group = Some((op, vec![expression]));
                             }
@@ -1242,7 +1244,7 @@ impl FilterBuilder {
                 }
             }
         }
-        
+
         // Add any remaining group
         if let Some((op, expressions)) = current_group {
             if expressions.len() > 1 {
@@ -1255,10 +1257,10 @@ impl FilterBuilder {
                 builder = builder.add_expression(expr.clone());
             }
         }
-        
+
         Ok(builder)
     }
-    
+
     pub fn build(&self) -> Result<String> {
         match &self.root {
             None => Ok(String::new()),

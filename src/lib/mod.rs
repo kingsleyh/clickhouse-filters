@@ -50,9 +50,7 @@ pub mod pagination;
 pub mod sorting;
 
 // Import key types from submodules
-use crate::filtering::{
-    FilterBuilder, FilterCondition, FilterExpression, FilterOperator,
-};
+use crate::filtering::{FilterBuilder, FilterCondition, FilterExpression, FilterOperator};
 use crate::pagination::Paginate;
 use crate::sorting::{SortedColumn, Sorting};
 
@@ -65,7 +63,7 @@ pub enum ColumnDef {
     // String Types
     String(&'static str),
     FixedString(&'static str),
-    
+
     // Numeric Types - Integers
     UInt8(&'static str),
     UInt16(&'static str),
@@ -79,23 +77,23 @@ pub enum ColumnDef {
     Int64(&'static str),
     Int128(&'static str),
     Int256(&'static str),
-    
+
     // Numeric Types - Floating Point
     Float32(&'static str),
     Float64(&'static str),
-    
+
     // Date/Time Types
     Date(&'static str),
     Date32(&'static str),
     DateTime(&'static str),
     DateTime64(&'static str),
-    
+
     // Boolean Type
     Boolean(&'static str),
-    
+
     // UUID Type
     UUID(&'static str),
-    
+
     // Array Types
     ArrayString(&'static str),
     ArrayUInt8(&'static str),
@@ -108,14 +106,14 @@ pub enum ColumnDef {
     ArrayInt64(&'static str),
     ArrayFloat32(&'static str),
     ArrayFloat64(&'static str),
-    
+
     // Special Types
     Enum8(&'static str),
     Enum16(&'static str),
     IPv4(&'static str),
     IPv6(&'static str),
     Decimal(&'static str),
-    
+
     // JSON Types
     JSON(&'static str),
 }
@@ -126,44 +124,61 @@ impl ColumnDef {
         match self {
             // String Types
             ColumnDef::String(name) | ColumnDef::FixedString(name) => name.to_string(),
-            
+
             // Numeric Types - Integers
-            ColumnDef::UInt8(name) | ColumnDef::UInt16(name) | ColumnDef::UInt32(name) |
-            ColumnDef::UInt64(name) | ColumnDef::UInt128(name) | ColumnDef::UInt256(name) |
-            ColumnDef::Int8(name) | ColumnDef::Int16(name) | ColumnDef::Int32(name) |
-            ColumnDef::Int64(name) | ColumnDef::Int128(name) | ColumnDef::Int256(name) => name.to_string(),
-            
+            ColumnDef::UInt8(name)
+            | ColumnDef::UInt16(name)
+            | ColumnDef::UInt32(name)
+            | ColumnDef::UInt64(name)
+            | ColumnDef::UInt128(name)
+            | ColumnDef::UInt256(name)
+            | ColumnDef::Int8(name)
+            | ColumnDef::Int16(name)
+            | ColumnDef::Int32(name)
+            | ColumnDef::Int64(name)
+            | ColumnDef::Int128(name)
+            | ColumnDef::Int256(name) => name.to_string(),
+
             // Numeric Types - Floating Point
             ColumnDef::Float32(name) | ColumnDef::Float64(name) => name.to_string(),
-            
+
             // Date/Time Types
-            ColumnDef::Date(name) | ColumnDef::Date32(name) | 
-            ColumnDef::DateTime(name) | ColumnDef::DateTime64(name) => name.to_string(),
-            
+            ColumnDef::Date(name)
+            | ColumnDef::Date32(name)
+            | ColumnDef::DateTime(name)
+            | ColumnDef::DateTime64(name) => name.to_string(),
+
             // Boolean Type
             ColumnDef::Boolean(name) => name.to_string(),
-            
+
             // UUID Type
             ColumnDef::UUID(name) => name.to_string(),
-            
+
             // Array Types
-            ColumnDef::ArrayString(name) | ColumnDef::ArrayUInt8(name) | 
-            ColumnDef::ArrayUInt16(name) | ColumnDef::ArrayUInt32(name) | 
-            ColumnDef::ArrayUInt64(name) | ColumnDef::ArrayInt8(name) | 
-            ColumnDef::ArrayInt16(name) | ColumnDef::ArrayInt32(name) | 
-            ColumnDef::ArrayInt64(name) | ColumnDef::ArrayFloat32(name) | 
-            ColumnDef::ArrayFloat64(name) => name.to_string(),
-            
+            ColumnDef::ArrayString(name)
+            | ColumnDef::ArrayUInt8(name)
+            | ColumnDef::ArrayUInt16(name)
+            | ColumnDef::ArrayUInt32(name)
+            | ColumnDef::ArrayUInt64(name)
+            | ColumnDef::ArrayInt8(name)
+            | ColumnDef::ArrayInt16(name)
+            | ColumnDef::ArrayInt32(name)
+            | ColumnDef::ArrayInt64(name)
+            | ColumnDef::ArrayFloat32(name)
+            | ColumnDef::ArrayFloat64(name) => name.to_string(),
+
             // Special Types
-            ColumnDef::Enum8(name) | ColumnDef::Enum16(name) | 
-            ColumnDef::IPv4(name) | ColumnDef::IPv6(name) | 
-            ColumnDef::Decimal(name) => name.to_string(),
-            
+            ColumnDef::Enum8(name)
+            | ColumnDef::Enum16(name)
+            | ColumnDef::IPv4(name)
+            | ColumnDef::IPv6(name)
+            | ColumnDef::Decimal(name) => name.to_string(),
+
             // JSON Types
             ColumnDef::JSON(name) => name.to_string(),
         }
     }
-    
+
     // Convert ColumnDef to appropriate FilterCondition
     pub fn to_filter_condition(&self, operator: &str, value: &str) -> Result<FilterCondition> {
         let op = match operator.to_uppercase().as_str() {
@@ -188,10 +203,10 @@ impl ColumnDef {
             "RELATIVE" => FilterOperator::RelativeDate,
             _ => return Err(eyre::eyre!("Invalid operator: {}", operator)),
         };
-        
+
         // Check if operator is for NULL checks
         let is_null_check = op == FilterOperator::IsNull || op == FilterOperator::IsNotNull;
-        
+
         match self {
             // String types
             ColumnDef::String(name) | ColumnDef::FixedString(name) => {
@@ -205,7 +220,7 @@ impl ColumnDef {
                     },
                 })
             }
-            
+
             // Integer types
             ColumnDef::UInt8(name) => {
                 if is_null_check {
@@ -409,7 +424,7 @@ impl ColumnDef {
                     }
                 }
             }
-            
+
             // Float types
             ColumnDef::Float32(name) => {
                 if is_null_check {
@@ -447,7 +462,7 @@ impl ColumnDef {
                     }
                 }
             }
-            
+
             // Date/Time types
             ColumnDef::Date(name) => {
                 if is_null_check {
@@ -463,9 +478,15 @@ impl ColumnDef {
                     // DATE_RANGE operator
                     let parts: Vec<&str> = value.split(',').collect();
                     if parts.len() == 2 {
-                        Ok(FilterCondition::date_range(name, parts[0].trim(), parts[1].trim()))
+                        Ok(FilterCondition::date_range(
+                            name,
+                            parts[0].trim(),
+                            parts[1].trim(),
+                        ))
                     } else {
-                        Err(eyre::eyre!("DATE_RANGE requires two comma-separated values"))
+                        Err(eyre::eyre!(
+                            "DATE_RANGE requires two comma-separated values"
+                        ))
                     }
                 } else if op == FilterOperator::RelativeDate {
                     // RELATIVE operator
@@ -490,9 +511,15 @@ impl ColumnDef {
                 } else if op == FilterOperator::DateRange {
                     let parts: Vec<&str> = value.split(',').collect();
                     if parts.len() == 2 {
-                        Ok(FilterCondition::date_range(name, parts[0].trim(), parts[1].trim()))
+                        Ok(FilterCondition::date_range(
+                            name,
+                            parts[0].trim(),
+                            parts[1].trim(),
+                        ))
                     } else {
-                        Err(eyre::eyre!("DATE_RANGE requires two comma-separated values"))
+                        Err(eyre::eyre!(
+                            "DATE_RANGE requires two comma-separated values"
+                        ))
                     }
                 } else if op == FilterOperator::RelativeDate {
                     Ok(FilterCondition::relative_date(name, value))
@@ -516,9 +543,15 @@ impl ColumnDef {
                 } else if op == FilterOperator::DateRange {
                     let parts: Vec<&str> = value.split(',').collect();
                     if parts.len() == 2 {
-                        Ok(FilterCondition::date_range(name, parts[0].trim(), parts[1].trim()))
+                        Ok(FilterCondition::date_range(
+                            name,
+                            parts[0].trim(),
+                            parts[1].trim(),
+                        ))
                     } else {
-                        Err(eyre::eyre!("DATE_RANGE requires two comma-separated values"))
+                        Err(eyre::eyre!(
+                            "DATE_RANGE requires two comma-separated values"
+                        ))
                     }
                 } else if op == FilterOperator::RelativeDate {
                     Ok(FilterCondition::relative_date(name, value))
@@ -542,9 +575,15 @@ impl ColumnDef {
                 } else if op == FilterOperator::DateRange {
                     let parts: Vec<&str> = value.split(',').collect();
                     if parts.len() == 2 {
-                        Ok(FilterCondition::date_range(name, parts[0].trim(), parts[1].trim()))
+                        Ok(FilterCondition::date_range(
+                            name,
+                            parts[0].trim(),
+                            parts[1].trim(),
+                        ))
                     } else {
-                        Err(eyre::eyre!("DATE_RANGE requires two comma-separated values"))
+                        Err(eyre::eyre!(
+                            "DATE_RANGE requires two comma-separated values"
+                        ))
                     }
                 } else if op == FilterOperator::RelativeDate {
                     Ok(FilterCondition::relative_date(name, value))
@@ -556,7 +595,7 @@ impl ColumnDef {
                     })
                 }
             }
-            
+
             // Boolean type
             ColumnDef::Boolean(name) => {
                 if is_null_check {
@@ -581,7 +620,7 @@ impl ColumnDef {
                     }
                 }
             }
-            
+
             // UUID type
             ColumnDef::UUID(name) => {
                 if is_null_check {
@@ -605,7 +644,7 @@ impl ColumnDef {
                     })
                 }
             }
-            
+
             // Array types
             ColumnDef::ArrayString(name) => {
                 if op == FilterOperator::ArrayContains {
@@ -627,13 +666,22 @@ impl ColumnDef {
                         value: None,
                     })
                 } else {
-                    Err(eyre::eyre!("Unsupported operator for array type: {}", operator))
+                    Err(eyre::eyre!(
+                        "Unsupported operator for array type: {}",
+                        operator
+                    ))
                 }
             }
-            ColumnDef::ArrayUInt8(name) | ColumnDef::ArrayUInt16(name) | ColumnDef::ArrayUInt32(name) |
-            ColumnDef::ArrayUInt64(name) | ColumnDef::ArrayInt8(name) | ColumnDef::ArrayInt16(name) |
-            ColumnDef::ArrayInt32(name) | ColumnDef::ArrayInt64(name) | ColumnDef::ArrayFloat32(name) |
-            ColumnDef::ArrayFloat64(name) => {
+            ColumnDef::ArrayUInt8(name)
+            | ColumnDef::ArrayUInt16(name)
+            | ColumnDef::ArrayUInt32(name)
+            | ColumnDef::ArrayUInt64(name)
+            | ColumnDef::ArrayInt8(name)
+            | ColumnDef::ArrayInt16(name)
+            | ColumnDef::ArrayInt32(name)
+            | ColumnDef::ArrayInt64(name)
+            | ColumnDef::ArrayFloat32(name)
+            | ColumnDef::ArrayFloat64(name) => {
                 if op == FilterOperator::ArrayContains {
                     Ok(FilterCondition::ArrayContains {
                         column: name.to_string(),
@@ -653,16 +701,19 @@ impl ColumnDef {
                         value: None,
                     })
                 } else {
-                    Err(eyre::eyre!("Unsupported operator for array type: {}", operator))
+                    Err(eyre::eyre!(
+                        "Unsupported operator for array type: {}",
+                        operator
+                    ))
                 }
             }
-            
+
             // JSON type
             ColumnDef::JSON(name) => {
                 // Extract path if provided (separated by dot or in JSONPath format)
                 let mut json_path = None;
                 let mut json_value = value.to_string();
-                
+
                 if value.contains('.') && !is_null_check {
                     let parts: Vec<&str> = value.splitn(2, '.').collect();
                     if parts.len() == 2 {
@@ -670,7 +721,7 @@ impl ColumnDef {
                         json_value = parts[1].to_string();
                     }
                 }
-                
+
                 if is_null_check {
                     Ok(FilterCondition::JSONValue {
                         column: name.to_string(),
@@ -687,7 +738,7 @@ impl ColumnDef {
                     })
                 }
             }
-            
+
             // Enum types (treated as strings)
             ColumnDef::Enum8(name) | ColumnDef::Enum16(name) => {
                 if is_null_check {
@@ -704,7 +755,7 @@ impl ColumnDef {
                     })
                 }
             }
-            
+
             // Network address types (treated as strings)
             ColumnDef::IPv4(name) | ColumnDef::IPv6(name) => {
                 if is_null_check {
@@ -721,7 +772,7 @@ impl ColumnDef {
                     })
                 }
             }
-            
+
             // Decimal type
             ColumnDef::Decimal(name) => {
                 if is_null_check {
@@ -741,7 +792,7 @@ impl ColumnDef {
                     }
                 }
             }
-            
+
             // Anything else - fallback to string value
             _ => {
                 if is_null_check {
@@ -812,7 +863,7 @@ impl FilteringOptions {
             column_defs,
         }
     }
-    
+
     /// Create FilteringOptions from JSON filters
     pub fn from_json_filters(
         filters: &[filtering::JsonFilter],
@@ -822,7 +873,8 @@ impl FilteringOptions {
             return Ok(None);
         }
 
-        let filter_builder = filtering::FilterBuilder::from_json_filters(filters, true, &column_defs)?;
+        let filter_builder =
+            filtering::FilterBuilder::from_json_filters(filters, true, &column_defs)?;
         Ok(filter_builder
             .root
             .map(|root| Self::new(vec![root], column_defs)))
@@ -841,13 +893,13 @@ impl FilteringOptions {
 
         Ok(builder)
     }
-    
+
     /// Generate SQL for this filtering option
     pub fn to_sql(&self) -> Result<String> {
         let builder = self.to_filter_builder()?;
         builder.build()
     }
-    
+
     /// Create FilteringOptions from expressions with validation
     pub fn try_from_expressions(
         expressions: Vec<Result<FilterExpression, eyre::Error>>,
@@ -887,7 +939,7 @@ impl ClickHouseFilters {
         } else {
             Some(Sorting::new(sorting_columns))
         };
-        
+
         // Create pagination component
         let pagination = match pagination {
             Some(opts) => Some(pagination::Paginate::new(
@@ -898,17 +950,17 @@ impl ClickHouseFilters {
             )),
             None => None,
         };
-        
+
         // Create filtering component
         let filters = match filtering_options {
             Some(opts) => {
                 // Convert the filtering options to a FilterBuilder
                 let builder = opts.to_filter_builder()?;
                 Some(builder)
-            },
+            }
             None => None,
         };
-        
+
         Ok(ClickHouseFilters {
             pagination,
             sorting,
@@ -930,7 +982,7 @@ impl ClickHouseFilters {
         if let Some(sorting) = &self.sorting {
             sql.push_str(&sorting.sql);
         }
-        
+
         // Add LIMIT and OFFSET
         if let Some(pagination) = &self.pagination {
             sql.push_str(" ");
@@ -943,15 +995,15 @@ impl ClickHouseFilters {
     /// Generate a SQL COUNT query for this filter
     pub fn count_sql(&self, schema: &str, table: &str) -> Result<String> {
         let mut sql = format!("SELECT COUNT(*) FROM {}.{}", schema, table);
-        
+
         // Add WHERE clause from filters
         if let Some(filters) = &self.filters {
             sql.push_str(&filters.build()?);
         }
-        
+
         Ok(sql)
     }
-    
+
     /// Generate a complete SQL query for this filter
     pub fn query_sql(&self, schema: &str, table: &str, columns: &[&str]) -> Result<String> {
         let columns_str = if columns.is_empty() {
@@ -959,25 +1011,25 @@ impl ClickHouseFilters {
         } else {
             columns.join(", ")
         };
-        
+
         let mut sql = format!("SELECT {} FROM {}.{}", columns_str, schema, table);
-        
+
         // Add WHERE clause from filters
         if let Some(filters) = &self.filters {
             sql.push_str(&filters.build()?);
         }
-        
+
         // Add ORDER BY clause
         if let Some(sorting) = &self.sorting {
             sql.push_str(&sorting.sql);
         }
-        
+
         // Add LIMIT and OFFSET
         if let Some(pagination) = &self.pagination {
             sql.push_str(" ");
             sql.push_str(&pagination.sql);
         }
-        
+
         Ok(sql)
     }
 }

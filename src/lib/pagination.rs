@@ -43,7 +43,7 @@ impl Pagination {
         } else {
             1
         };
-        
+
         // Calculate next page (never more than total pages)
         let next_page = if current_page < total_pages && total_pages > 0 {
             current_page + 1
@@ -87,7 +87,7 @@ impl Paginate {
         } else {
             10
         };
-        
+
         // Ensure per_page is within limits
         let per_page = if per_page > per_page_limit {
             per_page_limit
@@ -105,7 +105,7 @@ impl Paginate {
         } else {
             0
         };
-        
+
         // Validate current_page
         let current_page = if current_page < 1 { 1 } else { current_page };
         let current_page = if current_page > total_pages && total_pages > 0 {
@@ -120,7 +120,7 @@ impl Paginate {
 
         // Create pagination metadata
         let pagination = Pagination::new(current_page, per_page, total_pages, total_records);
-        
+
         // Generate SQL
         let sql = format!("LIMIT {} OFFSET {}", limit, offset);
 
