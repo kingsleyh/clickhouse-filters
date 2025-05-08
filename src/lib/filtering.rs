@@ -353,30 +353,7 @@ pub enum FilterCondition {
 
 // Placeholder implementation - will be expanded
 impl FilterCondition {
-    // Helper function to format values consistently
-    fn format_value<T: fmt::Display>(
-        column: &str,
-        operator: &FilterOperator,
-        value: Option<T>,
-    ) -> String {
-        match value {
-            Some(v) => format!("{} {} {}", column, operator.as_sql(), v),
-            None => format!("{} {}", column, operator.as_sql()),
-        }
-    }
-
-    // Helper function for string values
-    fn format_string_value(column: &str, operator: &FilterOperator, value: Option<&str>) -> String {
-        match value {
-            Some(v) => format!(
-                "{} {} '{}'",
-                column,
-                operator.as_sql(),
-                v.replace('\'', "''")
-            ),
-            None => format!("{} {}", column, operator.as_sql()),
-        }
-    }
+    // Note: These helper functions have been removed as they are unused
 
     // Escape single quotes in string values
     fn escape_string(value: &str) -> String {
@@ -863,10 +840,7 @@ impl FilterCondition {
                 values,
                 column_type,
             } => {
-                let is_text = match column_type {
-                    Some(ColumnTypeInfo::String) => true,
-                    _ => false,
-                };
+                let is_text = matches!(column_type, Some(ColumnTypeInfo::String));
 
                 let formatted_values = if is_text {
                     values
