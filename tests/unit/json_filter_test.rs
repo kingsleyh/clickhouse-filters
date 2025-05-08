@@ -156,12 +156,96 @@ fn test_json_filter_with_in_operator() {
     // Create filtering options from JSON
     let filtering = FilteringOptions::from_json_filters(&json_filters, columns).unwrap();
 
-    // Verify the SQL output (the expected output depends on the exact implementation)
-    // IN operator might not be implemented exactly as expected in the current version
-    // We just verify that the filtering contains the core elements
+    // Verify the SQL output
     let sql = filtering.unwrap().to_sql().unwrap();
-    println!("Generated SQL for IN operator: {}", sql);
+    // ClickHouse uses IN operator with a list of values
     assert!(sql.contains("status"));
+    assert!(sql.contains("IN"));
+    assert!(sql.contains("active"));
+    assert!(sql.contains("pending"));
+    assert!(sql.contains("processing"));
+}
+
+#[test]
+fn test_json_filter_with_json_path() {
+    // Set up column definitions
+    let mut columns = HashMap::new();
+    columns.insert("data", ColumnDef::JSON("data"));
+
+    // Create JSON filter with path extraction
+    let json_filters = vec![JsonFilter {
+        n: "data".to_string(),
+        f: "=".to_string(),
+        v: "user.profile.name.John".to_string(), // Using dot notation for path
+        c: None,
+    }];
+
+    // Create filtering options from JSON
+    let filtering = FilteringOptions::from_json_filters(&json_filters, columns).unwrap();
+
+    // Verify the SQL output uses JSONExtractString
+    let sql = filtering.unwrap().to_sql().unwrap();
+    println!("JSON path SQL: {}", sql);
+    assert!(sql.contains("JSONExtractString"));
+    assert!(sql.contains("data"));
+    assert!(sql.contains("user"));
+}
+
+#[test]
+fn test_json_filter_with_is_null() {
+    // Set up column definitions
+    let mut columns = HashMap::new();
+    columns.insert("data", ColumnDef::JSON("data"));
+
+    // Create JSON filter checking for NULL
+    let json_filters = vec![JsonFilter {
+        n: "data".to_string(),
+        f: "IS NULL".to_string(),
+        v: "".to_string(),
+        c: None,
+    }];
+
+    // Create filtering options from JSON
+    let filtering = FilteringOptions::from_json_filters(&json_filters, columns).unwrap();
+
+    // Verify the SQL output
+    let sql = filtering.unwrap().to_sql().unwrap();
+    assert!(sql.contains("data IS NULL"));
+}
+
+#[test]
+fn test_complex_nested_json_filters() {
+    // Set up column definitions
+    let mut columns = HashMap::new();
+    columns.insert("data", ColumnDef::JSON("data"));
+    columns.insert("metadata", ColumnDef::JSON("metadata"));
+
+    // Create complex nested JSON filters - only use supported operations for JSON
+    let json_filters = vec![
+        JsonFilter {
+            n: "data".to_string(),
+            f: "=".to_string(),
+            v: "user.profile.active.true".to_string(),
+            c: Some("AND".to_string()),
+        },
+        JsonFilter {
+            n: "metadata".to_string(),
+            f: "=".to_string(),
+            v: "tags.premium".to_string(),
+            c: None,
+        },
+    ];
+
+    // Create filtering options from JSON
+    let filtering = FilteringOptions::from_json_filters(&json_filters, columns).unwrap();
+
+    // Verify the SQL output contains all expected elements
+    let sql = filtering.unwrap().to_sql().unwrap();
+    println!("Generated SQL: {}", sql);
+    assert!(sql.contains("JSONExtractString"));
+    assert!(sql.contains("JSONExtractString(data"));
+    assert!(sql.contains("JSONExtractString(metadata"));
+    assert!(sql.contains("AND"));
 }
 
 #[test]
