@@ -1,4 +1,4 @@
 //! Test modules for clickhouse-filters
 pub mod unit;
-// Integration tests need to be reworked
+// Temporarily commented out due to API compatibility issues
 // pub mod integration;

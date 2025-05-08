@@ -259,7 +259,9 @@ version = "0.1.0"
 dependencies = [
  "clickhouse",
  "eyre",
+ "futures-util",
  "serde",
+ "serde_json",
  "testcontainers-modules",
  "time",
  "tokio",

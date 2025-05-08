@@ -84,6 +84,61 @@ let sql = filters.sql()?;
 // Results in: WHERE (lower(name) = lower('John') AND age > 18) ORDER BY age DESC, name ASC LIMIT 10 OFFSET 0
 ```
 
+### Complex Filtering with AND/OR Logic
+
+```rust
+use clickhouse_filters::filtering::{FilterCondition, FilterExpression, FilterOperator};
+
+// Create individual conditions
+let name_condition = FilterCondition::string("name", FilterOperator::Like, Some("%John%"));
+let age_condition = FilterCondition::uint32("age", FilterOperator::GreaterThan, Some(25));
+let active_condition = FilterCondition::boolean("active", FilterOperator::Equal, Some(true));
+
+// Combine with AND/OR logic
+let age_and_active = FilterExpression::and(vec![
+    FilterExpression::Condition(age_condition),
+    FilterExpression::Condition(active_condition),
+]);
+
+// Finally combine everything with OR
+let complex_filter = FilterExpression::or(vec![
+    FilterExpression::Condition(name_condition),
+    age_and_active,
+]);
+
+// Use in FilteringOptions
+let filtering = FilteringOptions::new(vec![complex_filter], columns.clone());
+```
+
+### JSON-based Filtering
+
+```rust
+use clickhouse_filters::filtering::JsonFilter;
+
+// Create JSON filters for the API
+let json_filters = vec![
+    JsonFilter {
+        n: "age".to_string(),      // column name
+        f: ">".to_string(),        // operator
+        v: "25".to_string(),       // value
+        c: Some("AND".to_string()), // connector
+    },
+    JsonFilter {
+        n: "active".to_string(),
+        f: "=".to_string(),
+        v: "1".to_string(),
+        c: None,
+    },
+];
+
+// Convert to FilteringOptions
+let filtering = FilteringOptions::from_json_filters(&json_filters, columns.clone())?;
+```
+
+## Testing
+
+Unit tests can be run with `cargo test`. Currently, integration tests require a running ClickHouse instance and need to be updated to work with the latest ClickHouse client API.
+
 ## Compatibility with pg_filters
 
 This library maintains API compatibility with `pg_filters` where possible, allowing for easy transition between PostgreSQL and ClickHouse implementations. There are some ClickHouse-specific features and optimizations that differ from the PostgreSQL implementation.
