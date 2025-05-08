@@ -3,10 +3,10 @@
 //! These tests use actual ClickHouse instances running in test containers to
 //! verify that the generated SQL works correctly in a real database.
 
+use clickhouse::Client;
 use eyre::Result;
 use std::time::Duration;
 use testcontainers_modules::{clickhouse::ClickHouse, testcontainers::runners::AsyncRunner};
-use clickhouse::{Client, ClientOptions};
 
 // Import test modules
 pub mod test_schema;
@@ -14,6 +14,8 @@ pub mod filtering_test;
 pub mod sorting_test;
 pub mod pagination_test;
 pub mod combined_test;
+pub mod basic_test;
+pub mod json_test;
 
 /// Run tests with a ClickHouse container
 pub async fn run_with_clickhouse<F, Fut>(test: F) -> Result<()>
@@ -42,15 +44,13 @@ where
     tokio::time::sleep(Duration::from_secs(3)).await;
     println!("Wait complete, proceeding with setup");
 
-    // Create ClickHouse client
+    // Create ClickHouse client using the newer API
     println!("Creating ClickHouse client...");
-    let client = Client::from_options(
-        ClientOptions::new()
-            .with_addr(format!("localhost:{}", http_port))
-            .with_database("default")
-            .with_username("default")
-            .with_password("")
-    );
+    let client = Client::default()
+        .with_url(format!("http://localhost:{}", http_port))
+        .with_database("default")
+        .with_user("default")
+        .with_password("");
 
     // Set up test schema
     println!("Setting up test schema...");

@@ -3,14 +3,13 @@
 //! These tests verify that JSON-based filters work correctly with ClickHouse.
 
 use crate::integration::run_with_clickhouse;
-use clickhouse::Client;
 use clickhouse_filters::{
     ClickHouseFilters, ColumnDef, FilteringOptions,
     filtering::JsonFilter,
 };
 use eyre::Result;
 use std::collections::HashMap;
-use futures_util::TryStreamExt;
+use serde::Deserialize;
 
 #[tokio::test]
 async fn test_basic_json_filter() -> Result<()> {
@@ -46,14 +45,20 @@ async fn test_basic_json_filter() -> Result<()> {
         println!("Generated SQL: {}", sql);
         
         // Execute the query
+        #[derive(Debug, Deserialize, clickhouse::Row)]
+        struct QueryResult {
+            name: String,
+            age: u32,
+        }
+        
         let result = client.query(&sql)
-            .fetch_all::<(String, u32)>()
+            .fetch_all::<QueryResult>()
             .await?;
         
         // Verify result
         assert!(result.len() > 0);
-        for (_, age) in &result {
-            assert!(*age > 25);
+        for item in &result {
+            assert!(item.age > 25);
         }
         
         Ok(())
@@ -101,7 +106,7 @@ async fn test_multiple_json_filters() -> Result<()> {
         println!("Generated SQL: {}", sql);
         
         // Execute the query
-        #[derive(serde::Deserialize)]
+        #[derive(Debug, Deserialize, clickhouse::Row)]
         struct QueryResult {
             name: String,
             age: u32,
@@ -164,7 +169,7 @@ async fn test_json_filters_with_or() -> Result<()> {
         println!("Generated SQL: {}", sql);
         
         // Execute the query
-        #[derive(serde::Deserialize)]
+        #[derive(Debug, Deserialize, clickhouse::Row)]
         struct QueryResult {
             name: String,
             age: u32,
@@ -219,7 +224,7 @@ async fn test_json_filters_with_array() -> Result<()> {
         println!("Generated SQL: {}", sql);
         
         // Execute the query
-        #[derive(serde::Deserialize)]
+        #[derive(Debug, Deserialize, clickhouse::Row)]
         struct QueryResult {
             name: String,
             tags: Vec<String>,

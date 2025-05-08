@@ -1,11 +1,10 @@
 //! Integration tests for pagination functionality
 
 use crate::integration::run_with_clickhouse;
-use clickhouse::Client;
 use clickhouse_filters::{ClickHouseFilters, ColumnDef, PaginationOptions};
 use eyre::Result;
 use std::collections::HashMap;
-use futures_util::TryStreamExt;
+use serde::Deserialize;
 
 #[tokio::test]
 async fn test_basic_pagination() -> Result<()> {
@@ -93,11 +92,11 @@ async fn test_second_page_pagination() -> Result<()> {
 async fn test_last_page_pagination() -> Result<()> {
     run_with_clickhouse(|client| async move {
         // First get the total count
-        let count_result = client.query("SELECT COUNT(*) FROM test_filters.users")
-            .fetch::<u64>()
+        let count: u64 = client.query("SELECT COUNT(*) FROM test_filters.users")
+            .fetch_one::<u64>()
             .await?;
         
-        let total_records = count_result.unwrap_or(0);
+        let total_records = count;
         
         // Set up column definitions
         let columns = HashMap::new();
@@ -155,11 +154,11 @@ async fn test_pagination_with_counting() -> Result<()> {
         println!("Count SQL: {}", count_sql);
         
         // Execute count query
-        let count_result = client.query(&count_sql)
-            .fetch::<u64>()
+        let count: u64 = client.query(&count_sql)
+            .fetch_one::<u64>()
             .await?;
         
-        let total_records = count_result.unwrap_or(0);
+        let total_records = count;
         
         // Update pagination with correct total records
         filters = ClickHouseFilters::new(

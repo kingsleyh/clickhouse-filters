@@ -3,7 +3,6 @@
 //! These tests verify the basic functionality of the crate with a real ClickHouse database.
 
 use crate::integration::run_with_clickhouse;
-use clickhouse::Client;
 use clickhouse_filters::{
     ClickHouseFilters, ColumnDef, FilteringOptions, PaginationOptions,
     filtering::{FilterCondition, FilterExpression, FilterOperator},
@@ -11,7 +10,7 @@ use clickhouse_filters::{
 };
 use eyre::Result;
 use std::collections::HashMap;
-use futures_util::TryStreamExt;
+use serde::Deserialize;
 
 #[tokio::test]
 async fn test_basic_query() -> Result<()> {
@@ -58,12 +57,12 @@ async fn test_count_query() -> Result<()> {
         println!("Generated count SQL: {}", sql);
         
         // Execute the query
-        let result = client.query(&sql)
-            .fetch::<u64>()
+        let count: u64 = client.query(&sql)
+            .fetch_one::<u64>()
             .await?;
         
         // Verify we got 5 results (from our test data)
-        assert_eq!(result, Some(5));
+        assert_eq!(count, 5);
         
         Ok(())
     }).await
@@ -110,7 +109,7 @@ async fn test_all_column_types() -> Result<()> {
         println!("Generated SQL: {}", sql);
         
         // Execute the query
-        #[derive(serde::Deserialize)]
+        #[derive(Debug, Deserialize, clickhouse::Row)]
         struct QueryResult {
             name: String,
             age: u32,
@@ -176,13 +175,19 @@ async fn test_api_compatibility() -> Result<()> {
         println!("Full query SQL: {}", query_sql);
         
         // Execute the query
+        #[derive(Debug, Deserialize, clickhouse::Row)]
+        struct QueryResult {
+            name: String,
+            age: u32,
+        }
+        
         let result = client.query(&query_sql)
-            .fetch_all::<(String, u32)>()
+            .fetch_all::<QueryResult>()
             .await?;
         
         // We should have found John Smith
         if !result.is_empty() {
-            assert_eq!(result[0].0, "John Smith");
+            assert_eq!(result[0].name, "John Smith");
         }
         
         Ok(())

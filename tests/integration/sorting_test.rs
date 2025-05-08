@@ -14,10 +14,8 @@ async fn run_query(client: &Client, sorting: &Sorting) -> Result<Vec<String>> {
     // Execute the query and collect results
     let result = client
         .query(&query)
-        .fetch_all()
-        .await?
-        .rows::<String>()?
-        .collect::<Vec<_>>();
+        .fetch_all::<String>()
+        .await?;
     
     Ok(result)
 }
@@ -78,16 +76,20 @@ async fn test_sorting_multiple_columns() -> Result<()> {
         let query = format!("SELECT name, age FROM test_filters.users{} LIMIT 10", sorting.sql);
         println!("Executing query: {}", query);
         
+        #[derive(Debug, serde::Deserialize, clickhouse::Row)]
+        struct QueryResult {
+            name: String,
+            age: u32,
+        }
+        
         let results = client
             .query(&query)
-            .fetch_all()
-            .await?
-            .rows::<(String, u32)>()?
-            .collect::<Vec<_>>();
+            .fetch_all::<QueryResult>()
+            .await?;
         
         // Verify the first result is the oldest person
-        assert_eq!(results[0].0, "Bob Brown");
-        assert_eq!(results[0].1, 35);
+        assert_eq!(results[0].name, "Bob Brown");
+        assert_eq!(results[0].age, 35);
         
         Ok(())
     })

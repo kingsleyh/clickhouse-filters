@@ -3,15 +3,14 @@
 //! These tests verify that filtering, sorting, and pagination work together correctly.
 
 use crate::integration::run_with_clickhouse;
-use clickhouse::Client;
 use clickhouse_filters::{
     ClickHouseFilters, ColumnDef, FilteringOptions, PaginationOptions,
-    filtering::{FilterCondition, FilterExpression, FilterOperator},
+    filtering::{FilterCondition, FilterExpression, FilterOperator, JsonFilter},
     sorting::SortedColumn,
 };
 use eyre::Result;
 use std::collections::HashMap;
-use futures_util::TryStreamExt;
+use serde::Deserialize;
 
 #[tokio::test]
 async fn test_filter_sort_paginate() -> Result<()> {
@@ -49,21 +48,22 @@ async fn test_filter_sort_paginate() -> Result<()> {
         println!("Count SQL: {}", count_sql);
         
         // Execute count query
-        let count_result = client.query(&count_sql)
-            .fetch::<u64>()
+        let count: u64 = client.query(&count_sql)
+            .fetch_one::<u64>()
             .await?;
         
-        let total_records = count_result.unwrap_or(0);
+        let total_records = count;
         println!("Total active users: {}", total_records);
         
         // Update filters with correct total records
+        let columns_clone = columns.clone();
         filters = ClickHouseFilters::new(
             Some(PaginationOptions::new(1, 2, 10, total_records as i64)),
             vec![SortedColumn::new("age", "desc")],
             Some(FilteringOptions::new(vec![FilterExpression::Condition(
                 FilterCondition::uint8("active", FilterOperator::Equal, Some(1))
-            )], columns.clone())),
-            columns,
+            )], columns_clone.clone())),
+            columns_clone,
         )?;
         
         // Generate SQL for the query
@@ -71,7 +71,7 @@ async fn test_filter_sort_paginate() -> Result<()> {
         println!("Generated SQL: {}", sql);
         
         // Execute the query
-        #[derive(serde::Deserialize, Debug)]
+        #[derive(Debug, Deserialize, clickhouse::Row)]
         struct QueryResult {
             name: String,
             age: u32,
@@ -174,7 +174,7 @@ async fn test_complex_query() -> Result<()> {
             age_or_score,
         ]);
         
-        let filtering = FilteringOptions::new(vec![complex_expr], columns.clone());
+        let filtering = FilteringOptions::new(vec![complex_expr.clone()], columns.clone());
         
         // Create sorting by score descending
         let sorting = vec![SortedColumn::new("score", "desc")];
@@ -194,21 +194,22 @@ async fn test_complex_query() -> Result<()> {
         let count_sql = filters.count_sql("test_filters", "users")?;
         println!("Count SQL: {}", count_sql);
         
-        let count_result = client.query(&count_sql)
-            .fetch::<u64>()
+        let count: u64 = client.query(&count_sql)
+            .fetch_one::<u64>()
             .await?;
         
-        let total_records = count_result.unwrap_or(0);
+        let total_records = count;
         println!("Total matching records: {}", total_records);
         
         // Update filters with correct count
-        let filtering_options = FilteringOptions::new(vec![complex_expr], columns.clone());
+        let columns_clone = columns.clone();
+        let filtering_options = FilteringOptions::new(vec![complex_expr.clone()], columns_clone.clone());
         
         filters = ClickHouseFilters::new(
             Some(PaginationOptions::new(1, 10, 10, total_records as i64)),
             vec![SortedColumn::new("score", "desc")],
             Some(filtering_options),
-            columns,
+            columns_clone,
         )?;
         
         // Generate SQL for the query
@@ -216,7 +217,7 @@ async fn test_complex_query() -> Result<()> {
         println!("Generated SQL: {}", sql);
         
         // Execute the query
-        #[derive(serde::Deserialize, Debug)]
+        #[derive(Debug, Deserialize, clickhouse::Row)]
         struct QueryResult {
             name: String,
             age: u32,
@@ -259,13 +260,13 @@ async fn test_json_filters_with_pagination() -> Result<()> {
         
         // Create JSON filters
         let json_filters = vec![
-            clickhouse_filters::filtering::JsonFilter {
+            JsonFilter {
                 n: "active".to_string(),
                 f: "=".to_string(),
                 v: "1".to_string(),
                 c: Some("AND".to_string()),
             },
-            clickhouse_filters::filtering::JsonFilter {
+            JsonFilter {
                 n: "age".to_string(),
                 f: ">".to_string(),
                 v: "25".to_string(),
@@ -289,11 +290,11 @@ async fn test_json_filters_with_pagination() -> Result<()> {
         
         // Get count
         let count_sql = filters.count_sql("test_filters", "users")?;
-        let count_result = client.query(&count_sql)
-            .fetch::<u64>()
+        let count: u64 = client.query(&count_sql)
+            .fetch_one::<u64>()
             .await?;
         
-        let total_records = count_result.unwrap_or(0);
+        let total_records = count;
         
         // Update filters with count
         filters = ClickHouseFilters::new(
@@ -308,7 +309,7 @@ async fn test_json_filters_with_pagination() -> Result<()> {
         println!("Generated SQL: {}", sql);
         
         // Execute query
-        #[derive(serde::Deserialize, Debug)]
+        #[derive(Debug, Deserialize, clickhouse::Row)]
         struct QueryResult {
             name: String,
             age: u32,
