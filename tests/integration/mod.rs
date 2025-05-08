@@ -6,7 +6,7 @@
 use eyre::Result;
 use std::time::Duration;
 use testcontainers_modules::{clickhouse::ClickHouse, testcontainers::runners::AsyncRunner};
-use clickhouse::Client;
+use clickhouse::{Client, ClientOptions};
 
 // Import test modules
 pub mod test_schema;
@@ -44,11 +44,13 @@ where
 
     // Create ClickHouse client
     println!("Creating ClickHouse client...");
-    let client = Client::default()
-        .with_url(format!("http://localhost:{}", http_port))
-        .with_database("default")
-        .with_username("default")
-        .with_password("");
+    let client = Client::from_options(
+        ClientOptions::new()
+            .with_addr(format!("localhost:{}", http_port))
+            .with_database("default")
+            .with_username("default")
+            .with_password("")
+    );
 
     // Set up test schema
     println!("Setting up test schema...");

@@ -23,6 +23,6 @@ serde = { version = "1.0.215", features = ["derive"] }
 [dev-dependencies]
 testcontainers-modules = { version = "0.11.4", features = ["clickhouse"] }
 tokio = { version = "1", features = ["full"] }
-clickhouse = { version = "0.11.5", features = ["chrono", "uuid", "serde_json"] }
-chrono = "0.4.38"
+clickhouse = { version = "0.13.2", features = ["uuid", "time"] }
+time = "0.3.34"
 uuid = { version = "1.11.0", features = ["v4", "fast-rng", "macro-diagnostics", "serde"] }

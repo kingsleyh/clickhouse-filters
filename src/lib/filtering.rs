@@ -4,10 +4,8 @@
 //! It's designed to support complex filtering expressions with AND/OR conditions and various
 //! operators for different data types.
 
-use crate::ColumnDef;
 use eyre::Result;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Debug;
 

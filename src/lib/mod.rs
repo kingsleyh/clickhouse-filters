@@ -51,8 +51,7 @@ pub mod sorting;
 
 // Import key types from submodules
 use crate::filtering::{
-    ColumnTypeInfo, FilterBuilder, FilterCondition, FilterExpression, FilterOperator, JsonFilter,
-    LogicalOperator,
+    FilterBuilder, FilterCondition, FilterExpression, FilterOperator,
 };
 use crate::pagination::Paginate;
 use crate::sorting::{SortedColumn, Sorting};
@@ -273,9 +272,9 @@ impl ClickHouseFilters {
     ///
     /// This is the main entry point for creating filters.
     pub fn new(
-        pagination: Option<PaginationOptions>,
+        _pagination: Option<PaginationOptions>,
         sorting_columns: Vec<SortedColumn>,
-        filtering_options: Option<FilteringOptions>,
+        _filtering_options: Option<FilteringOptions>,
         column_defs: HashMap<&'static str, ColumnDef>,
     ) -> Result<ClickHouseFilters> {
         // Placeholder implementation
