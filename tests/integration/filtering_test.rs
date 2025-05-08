@@ -34,6 +34,7 @@ async fn test_basic_string_filtering() -> Result<()> {
 
         // Execute the query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             id: String, // UUID in the database, but returned as String
             name: String,
@@ -78,6 +79,7 @@ async fn test_numeric_range_filtering() -> Result<()> {
 
         // Execute the query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             name: String,
             age: u32,
@@ -118,6 +120,7 @@ async fn test_array_filtering() -> Result<()> {
 
         // Execute the query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             name: String,
             tags: Vec<String>,
@@ -173,6 +176,7 @@ async fn test_complex_condition_filtering() -> Result<()> {
 
         // Execute the query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             name: String,
             age: u32,

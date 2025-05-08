@@ -94,6 +94,7 @@ async fn test_all_column_types() -> Result<()> {
 
         // Execute the query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             name: String,
             age: u32,
@@ -159,6 +160,7 @@ async fn test_api_compatibility() -> Result<()> {
 
         // Execute the query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             name: String,
             age: u32,

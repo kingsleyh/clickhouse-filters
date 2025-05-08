@@ -71,6 +71,7 @@ async fn test_filter_sort_paginate() -> Result<()> {
 
         // Execute the query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             name: String,
             age: u32,
@@ -207,6 +208,7 @@ async fn test_complex_query() -> Result<()> {
 
         // Execute the query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             name: String,
             age: u32,
@@ -296,6 +298,7 @@ async fn test_json_filters_with_pagination() -> Result<()> {
 
         // Execute query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             name: String,
             age: u32,

@@ -36,6 +36,7 @@ async fn test_basic_json_filter() -> Result<()> {
 
         // Execute the query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             name: String,
             age: u32,
@@ -91,6 +92,7 @@ async fn test_multiple_json_filters() -> Result<()> {
 
         // Execute the query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             name: String,
             age: u32,
@@ -148,6 +150,7 @@ async fn test_json_filters_with_or() -> Result<()> {
 
         // Execute the query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             name: String,
             age: u32,
@@ -195,6 +198,7 @@ async fn test_json_filters_with_array() -> Result<()> {
 
         // Execute the query
         #[derive(Debug, Deserialize, clickhouse::Row)]
+        #[allow(dead_code)]
         struct QueryResult {
             name: String,
             tags: Vec<String>,
