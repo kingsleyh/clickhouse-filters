@@ -198,6 +198,8 @@ impl ColumnDef {
             "ENDS WITH" => FilterOperator::EndsWith,
             "ARRAY CONTAINS" => FilterOperator::ArrayContains,
             "ARRAY HAS" => FilterOperator::ArrayHas,
+            "ARRAY ALL" => FilterOperator::ArrayAll,
+            "ARRAY ANY" => FilterOperator::ArrayAny,
             "DATE_ONLY" => FilterOperator::DateEqual,
             "DATE_RANGE" => FilterOperator::DateRange,
             "RELATIVE" => FilterOperator::RelativeDate,
