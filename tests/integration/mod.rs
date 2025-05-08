@@ -5,7 +5,6 @@
 
 use clickhouse::Client;
 use eyre::Result;
-use std::time::Duration;
 use testcontainers_modules::{clickhouse::ClickHouse, testcontainers::runners::AsyncRunner};
 
 // Import test modules
@@ -39,11 +38,6 @@ where
     let http_port = container.get_host_port_ipv4(8123).await?;
     println!("ClickHouse HTTP port: {}", http_port);
 
-    // Wait for container to be ready
-    println!("Waiting for ClickHouse container to be ready...");
-    tokio::time::sleep(Duration::from_secs(3)).await;
-    println!("Wait complete, proceeding with setup");
-
     // Create ClickHouse client using the newer API
     println!("Creating ClickHouse client...");
     let client = Client::default()
@@ -51,6 +45,34 @@ where
         .with_database("default")
         .with_user("default")
         .with_password("");
+    
+    // Wait for container to be ready with retry logic
+    println!("Waiting for ClickHouse container to be ready (with retry)...");
+    let max_retries = 10;
+    let mut retry_count = 0;
+    let mut connected = false;
+    
+    while retry_count < max_retries && !connected {
+        println!("Attempt {} of {}", retry_count + 1, max_retries);
+        match client.query("SELECT 1").execute().await {
+            Ok(_) => {
+                connected = true;
+                println!("Successfully connected to ClickHouse!");
+            },
+            Err(e) => {
+                println!("Connection attempt failed: {}", e);
+                retry_count += 1;
+                // Exponential backoff: wait longer after each failure
+                let wait_time = std::time::Duration::from_millis(500 * 2_u64.pow(retry_count as u32));
+                println!("Waiting {:?} before next attempt", wait_time);
+                tokio::time::sleep(wait_time).await;
+            }
+        }
+    }
+    
+    if !connected {
+        return Err(eyre::eyre!("Failed to connect to ClickHouse after {} attempts", max_retries));
+    }
 
     // Set up test schema
     println!("Setting up test schema...");
