@@ -4,31 +4,47 @@ use clickhouse::Client;
 use eyre::Result;
 
 /// Helper function for retrying database operations
-async fn retry_operation<F, Fut, T>(
-    operation_name: &str, 
-    max_retries: usize, 
-    f: F
-) -> Result<T> 
+async fn retry_operation<F, Fut, T>(operation_name: &str, max_retries: usize, f: F) -> Result<T>
 where
     F: Fn() -> Fut,
     Fut: std::future::Future<Output = Result<T>>,
 {
     let mut retry_count = 0;
     loop {
-        match f().await {
-            Ok(result) => {
+        // Add timeout to prevent hanging operations
+        match tokio::time::timeout(std::time::Duration::from_secs(5), f()).await {
+            Ok(Ok(result)) => {
                 println!("{} completed successfully", operation_name);
                 return Ok(result);
             }
-            Err(e) => {
+            Ok(Err(e)) => {
                 retry_count += 1;
                 if retry_count >= max_retries {
-                    return Err(eyre::eyre!("{} failed after {} attempts: {}", 
-                                           operation_name, max_retries, e));
+                    return Err(eyre::eyre!(
+                        "{} failed after {} attempts: {}",
+                        operation_name,
+                        max_retries,
+                        e
+                    ));
                 }
-                
+
                 println!("{} attempt {} failed: {}", operation_name, retry_count, e);
-                let wait_time = std::time::Duration::from_millis(500 * 2_u64.pow(retry_count as u32));
+                let wait_time = std::time::Duration::from_millis(500);
+                println!("Waiting {:?} before retry", wait_time);
+                tokio::time::sleep(wait_time).await;
+            }
+            Err(_) => {
+                retry_count += 1;
+                if retry_count >= max_retries {
+                    return Err(eyre::eyre!(
+                        "{} timed out after {} attempts",
+                        operation_name,
+                        max_retries
+                    ));
+                }
+
+                println!("{} attempt {} timed out", operation_name, retry_count);
+                let wait_time = std::time::Duration::from_millis(500);
                 println!("Waiting {:?} before retry", wait_time);
                 tokio::time::sleep(wait_time).await;
             }
@@ -47,7 +63,8 @@ pub async fn setup_test_schema(client: &Client) -> Result<()> {
             .execute()
             .await
             .map_err(|e| eyre::eyre!("Database creation failed: {}", e))
-    }).await?;
+    })
+    .await?;
 
     // Create users table with retry
     println!("Creating users table...");
@@ -72,7 +89,8 @@ pub async fn setup_test_schema(client: &Client) -> Result<()> {
             .execute()
             .await
             .map_err(|e| eyre::eyre!("Table creation failed: {}", e))
-    }).await?;
+    })
+    .await?;
 
     // Insert sample data with retry
     println!("Inserting sample data...");
@@ -114,7 +132,8 @@ pub async fn setup_test_schema(client: &Client) -> Result<()> {
             .execute()
             .await
             .map_err(|e| eyre::eyre!("Orders table creation failed: {}", e))
-    }).await?;
+    })
+    .await?;
 
     // Insert sample order data with retry
     println!("Inserting sample order data...");
@@ -145,15 +164,16 @@ pub async fn setup_test_schema(client: &Client) -> Result<()> {
 /// Clear test database
 pub async fn clear_test_schema(client: &Client) -> Result<()> {
     println!("Cleaning up test database...");
-    
+
     retry_operation("Drop test database", 3, || async {
         client
             .query("DROP DATABASE IF EXISTS test_filters")
             .execute()
             .await
             .map_err(|e| eyre::eyre!("Database drop failed: {}", e))
-    }).await?;
-    
+    })
+    .await?;
+
     println!("Test database cleanup completed successfully");
     Ok(())
 }

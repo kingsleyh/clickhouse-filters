@@ -264,6 +264,7 @@ dependencies = [
  "eyre",
  "futures",
  "futures-util",
+ "once_cell",
  "serde",
  "serde_json",
  "testcontainers-modules",
